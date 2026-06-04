@@ -1,6 +1,6 @@
 # Estrategia de copias de seguridad
 
-> **Estado:** Borrador  
+> **Estado:** Primera versión completa  
 > **Autor:** vjp-victorMC  
 > **Fecha:** 2026-06-04
 
@@ -20,11 +20,10 @@
 
 FECHA=$(date +%Y%m%d_%H%M%S)
 DIR_BACKUP="/backups/bd"
-RETENCION=7  # días
+RETENCION=7
 
 mkdir -p "$DIR_BACKUP"
 
-# Backup de todas las bases de datos
 mysqldump --user=root --password="$MYSQL_ROOT_PASS" \
     --all-databases \
     --single-transaction \
@@ -35,13 +34,12 @@ mysqldump --user=root --password="$MYSQL_ROOT_PASS" \
 if [ $? -eq 0 ]; then
     echo "[OK] Backup completado: backup_$FECHA.sql.gz"
 else
-    echo "[ERROR] Falló el backup de la base de datos"
+    echo "[ERROR] Falló el backup"
     exit 1
 fi
 
-# Rotación: eliminar backups más antiguos que $RETENCION días
 find "$DIR_BACKUP" -name "backup_*.sql.gz" -mtime +$RETENCION -delete
-echo "[OK] Rotación completada: eliminados backups de más de $RETENCION días"
+echo "[OK] Rotación completada"
 ```
 
 ## 3. Script de backup de archivos web
@@ -56,48 +54,29 @@ RETENCION=7
 
 mkdir -p "$DIR_BACKUP"
 
-# Sincronizar archivos web
-rsync -az --delete \
-    /var/www/ \
-    "$DIR_BACKUP/web_$FECHA/"
+rsync -az --delete /var/www/ "$DIR_BACKUP/web_$FECHA/"
 
 if [ $? -eq 0 ]; then
     echo "[OK] Backup web completado: web_$FECHA/"
 else
-    echo "[ERROR] Falló el backup de archivos web"
+    echo "[ERROR] Falló el backup web"
     exit 1
 fi
 
-# Rotación
 ls -dt "$DIR_BACKUP"/web_*/ | tail -n +$((RETENCION+1)) | xargs rm -rf
 ```
 
 ## 4. Configuración del cron
 
-```bash
-sudo crontab -e
-```
-
-Añadir las siguientes entradas:
-
 ```cron
-# Backup de bases de datos todos los días a las 02:00
 0 2 * * * /usr/local/bin/backup-bd.sh >> /var/log/backup-bd.log 2>&1
-
-# Backup de archivos web todos los días a las 02:30
 30 2 * * * /usr/local/bin/backup-web.sh >> /var/log/backup-web.log 2>&1
 ```
 
-## 5. Verificación de los backups
+## 5. Verificación
 
 ```bash
-# Listar backups disponibles
 ls -lh /backups/bd/
-ls -lh /backups/web/
-
-# Verificar integridad de un backup de BD
 gzip -t /backups/bd/backup_YYYYMMDD_HHmmss.sql.gz && echo "Backup íntegro"
-
-# Restaurar un backup de BD (solo en caso de emergencia)
 gunzip -c /backups/bd/backup_YYYYMMDD_HHmmss.sql.gz | mysql -u root -p
 ```
