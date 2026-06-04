@@ -1,6 +1,6 @@
 # Análisis de requisitos del cliente
 
-> **Estado:** Borrador inicial  
+> **Estado:** Primera versión completa  
 > **Autor:** vjp-victorMC  
 > **Fecha:** 2026-06-04
 
