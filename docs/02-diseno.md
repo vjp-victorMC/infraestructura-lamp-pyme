@@ -1,6 +1,6 @@
 # Diseño de la infraestructura
 
-> **Estado:** Borrador inicial  
+> **Estado:** Primera versión — incluye diagrama de red y tabla de versiones  
 > **Autor:** vjp-victorMC  
 > **Fecha:** 2026-06-04
 
@@ -9,21 +9,25 @@
 ```
 [Internet]
     |
-[Router/Firewall]
+[Router/Firewall externo]
     |
-[HAProxy - Balanceador]  :80/:443
+[UFW — Firewall del servidor]   :22 solo 192.168.1.0/24
+    |
+[HAProxy — Balanceador]  :80/:443
     |
 [Apache + PHP]  :8080
     |
-[MySQL]  :3306 (solo local)
+[MySQL]  :3306 (solo 127.0.0.1)
+    |
+[Netdata]  :19999 (solo 192.168.1.0/24)
 ```
 
-## 2. Tabla de componentes de software
+## 2. Tabla de versiones de software
 
 | Componente | Versión | Puerto | Descripción |
 |---|---|---|---|
 | Ubuntu Server | 22.04 LTS | - | Sistema operativo |
-| Apache | 2.4.60 | 8080 | Servidor web (versión actualizada) |
+| Apache | 2.4.57 | 8080 | Servidor web |
 | PHP | 8.2 | - | Lenguaje de scripting |
 | MySQL | 8.0 | 3306 | Base de datos |
 | HAProxy | 2.6 | 80/443 | Balanceador de carga |
